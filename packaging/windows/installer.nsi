@@ -1,4 +1,4 @@
-; NSIS installer for WorkChat. Build: makensis /DVERSION=1.1.0 packaging/windows/installer.nsi
+; NSIS installer for WorkChat. Build: makensis /DVERSION=1.2.0 packaging/windows/installer.nsi
 !include "MUI2.nsh"
 
 Name "WorkChat"

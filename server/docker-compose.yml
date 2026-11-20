@@ -2,7 +2,7 @@ name: workchat
 
 services:
   workchat:
-    image: ${WORKCHAT_IMAGE:-ghcr.io/uri-travoski/workchat-server:1.1.0}
+    image: ${WORKCHAT_IMAGE:-ghcr.io/uri-travoski/workchat-server:1.2.0}
     restart: unless-stopped
     ports:
       - "${WORKCHAT_BIND_ADDR:-0.0.0.0}:${WORKCHAT_PORT:-8080}:8080"

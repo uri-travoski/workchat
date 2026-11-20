@@ -38,6 +38,8 @@ class Message {
   List<Reaction> reactions;
   int replyCount;
   int? lastReplyAt;
+  List<String> labels;
+  bool isSaved;
 
   Message({
     required this.id,
@@ -58,6 +60,8 @@ class Message {
     this.reactions = const [],
     this.replyCount = 0,
     this.lastReplyAt,
+    this.labels = const [],
+    this.isSaved = false,
   });
 
   factory Message.fromJson(Map<String, dynamic> json) {
@@ -69,6 +73,9 @@ class Message {
 
     var rawMentions = json['mentions'] as List<dynamic>? ?? [];
     var ments = rawMentions.map((m) => m.toString()).toList();
+
+    var rawLabels = json['labels'] as List<dynamic>? ?? [];
+    var lbls = rawLabels.map((l) => l.toString()).toList();
 
     return Message(
       id: json['id'] as String,
@@ -89,6 +96,8 @@ class Message {
       reactions: reacts,
       replyCount: json['reply_count'] as int? ?? 0,
       lastReplyAt: json['last_reply_at'] as int?,
+      labels: lbls,
+      isSaved: json['is_saved'] as bool? ?? false,
     );
   }
 
@@ -111,5 +120,7 @@ class Message {
     'reactions': reactions.map((r) => r.toJson()).toList(),
     'reply_count': replyCount,
     'last_reply_at': lastReplyAt,
+    'labels': labels,
+    'is_saved': isSaved,
   };
 }

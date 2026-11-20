@@ -4,6 +4,7 @@
 dist/
 dist-release/
 target/
+apk_server/
 *.exe
 *.deb
 *.rpm

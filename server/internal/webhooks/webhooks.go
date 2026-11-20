@@ -70,7 +70,7 @@ func (s *WebhookService) deliver(id int64, url string, secret *string, event, bo
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-WorkChat-Event", event)
-	req.Header.Set("User-Agent", "WorkChat-Webhook-Delivery/1.1")
+	req.Header.Set("User-Agent", "WorkChat-Webhook-Delivery/1.2")
 
 	if secret != nil && *secret != "" {
 		mac := hmac.New(sha256.New, []byte(*secret))

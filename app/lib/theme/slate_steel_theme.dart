@@ -31,6 +31,13 @@ class SlateSteelTheme implements AppThemeDefinition {
         onPrimary: crispWhite,
         outline: slateBorder,
       ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: slateSurface,
+        selectedItemColor: slateLightAccent,
+        unselectedItemColor: Color(0xFF94A3B8),
+        elevation: 8,
+        type: BottomNavigationBarType.fixed,
+      ),
       cardTheme: const CardTheme(
         color: slateSurface,
         elevation: 0,
@@ -77,6 +84,13 @@ class SlateSteelTheme implements AppThemeDefinition {
         onSurface: Color(0xFF0F172A),
         onPrimary: crispWhite,
         outline: Color(0xFFE2E8F0),
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: Colors.white,
+        selectedItemColor: steelBlueAccent,
+        unselectedItemColor: Color(0xFF64748B),
+        elevation: 8,
+        type: BottomNavigationBarType.fixed,
       ),
       cardTheme: const CardTheme(
         color: Colors.white,

@@ -2,7 +2,7 @@ name: workchat
 description: "WorkChat - Lightweight, private self-hosted messaging"
 publish_to: 'none'
 
-version: 1.1.0+110
+version: 1.2.0+120
 
 environment:
   sdk: ^3.5.4
@@ -34,6 +34,7 @@ dependencies:
   shared_preferences: ^2.5.3
   intl: ^0.20.2
   crypto: ^3.0.8
+  google_fonts: ^6.3.0
 
 dev_dependencies:
   flutter_test:
@@ -59,6 +60,7 @@ flutter:
 
   assets:
     - assets/icons/app-icon.png
+    - assets/demo/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

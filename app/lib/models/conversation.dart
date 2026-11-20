@@ -11,6 +11,9 @@ class Conversation {
   String? avatarAttachment;
   int unreadCount;
   bool isHidden; // Client-side hidden chat flag
+  bool isPinned; // Pinned chat flag
+  bool isMuted;  // Muted notification flag
+  int pinOrder;  // User custom drag-and-drop order for pinned chats
 
   Conversation({
     required this.id,
@@ -25,6 +28,9 @@ class Conversation {
     this.avatarAttachment,
     this.unreadCount = 0,
     this.isHidden = false,
+    this.isPinned = false,
+    this.isMuted = false,
+    this.pinOrder = 0,
   });
 
   factory Conversation.fromJson(Map<String, dynamic> json) {
@@ -41,6 +47,9 @@ class Conversation {
       avatarAttachment: json['avatar_attachment'] as String?,
       unreadCount: json['unread_count'] as int? ?? 0,
       isHidden: json['is_hidden'] as bool? ?? false,
+      isPinned: json['is_pinned'] as bool? ?? false,
+      isMuted: json['is_muted'] as bool? ?? false,
+      pinOrder: json['pin_order'] as int? ?? 0,
     );
   }
 
@@ -57,5 +66,8 @@ class Conversation {
     'avatar_attachment': avatarAttachment,
     'unread_count': unreadCount,
     'is_hidden': isHidden,
+    'is_pinned': isPinned,
+    'is_muted': isMuted,
+    'pin_order': pinOrder,
   };
 }

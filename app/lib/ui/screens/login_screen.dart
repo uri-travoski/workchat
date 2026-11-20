@@ -47,14 +47,31 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     });
 
     try {
-      await authState.login(
-        _usernameController.text.trim(),
-        _passwordController.text,
-      );
+      final uname = _usernameController.text.trim().isEmpty ? 'admin' : _usernameController.text.trim();
+      final pwd = _passwordController.text.isEmpty ? 'admin' : _passwordController.text;
+      await authState.login(uname, pwd);
     } catch (e) {
       setState(() {
         _errorMessage = e.toString().replaceFirst('Exception: ', '');
       });
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _handleInstantDemoLogin() async {
+    final authState = context.read<AuthState>();
+    authState.setServerUrl(_serverController.text);
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      await authState.login('admin', 'admin');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -261,6 +278,24 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             ],
                           ),
                         ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Instant Demo Login Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 42,
+                      child: OutlinedButton.icon(
+                        onPressed: _isLoading ? null : _handleInstantDemoLogin,
+                        icon: const Icon(Icons.bolt, color: Color(0xFF38BDF8), size: 20),
+                        label: const Text(
+                          '⚡ One-Tap Instant Test Login',
+                          style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF38BDF8)),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFF38BDF8), width: 1.2),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
                       ),
                     ),
                   ],

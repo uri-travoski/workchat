@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:open_filex/open_filex.dart';
 import 'package:path/path.dart' as p;
@@ -17,12 +18,23 @@ class FileService {
 
       if (!await targetFile.exists()) {
         await targetFile.parent.create(recursive: true);
-        final downloadUrl = Uri.parse('$serverUrl/api/v1/files/$attachmentId?token=$token');
-        final response = await http.get(downloadUrl);
-        if (response.statusCode == 200) {
-          await targetFile.writeAsBytes(response.bodyBytes);
-        } else {
-          throw Exception('Failed to download file: HTTP ${response.statusCode}');
+        bool loadedFromAssets = false;
+        try {
+          final data = await rootBundle.load('assets/demo/$fileName');
+          await targetFile.writeAsBytes(data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
+          loadedFromAssets = true;
+        } catch (_) {
+          loadedFromAssets = false;
+        }
+
+        if (!loadedFromAssets) {
+          final downloadUrl = Uri.parse('$serverUrl/api/v1/files/$attachmentId?token=$token');
+          final response = await http.get(downloadUrl);
+          if (response.statusCode == 200) {
+            await targetFile.writeAsBytes(response.bodyBytes);
+          } else {
+            throw Exception('Failed to download file: HTTP ${response.statusCode}');
+          }
         }
       }
 
