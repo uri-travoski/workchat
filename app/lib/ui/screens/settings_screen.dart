@@ -21,7 +21,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  static const String currentVersion = '1.2.0';
+  static const String currentVersion = '1.2.1';
   static const int buildNumber = 120;
 
   bool _isCheckingUpdate = false;
