@@ -8,6 +8,7 @@ import '../../state/hidden_chat_manager.dart';
 import '../components/composer.dart';
 import '../components/message_bubble.dart';
 import 'hidden_lock_dialog.dart';
+import 'mobile_chat_screen.dart';
 import 'settings_screen.dart';
 import 'thread_view.dart';
 
@@ -166,6 +167,14 @@ class _MainLayoutState extends State<MainLayout> {
     }
 
     if (isDesktop) {
+      if (chatState.activeConversation == null && chatState.conversations.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && chatState.activeConversation == null) {
+            chatState.selectConversation(chatState.conversations.first);
+          }
+        });
+      }
+
       // 3-Pane Desktop Layout
       return Scaffold(
         body: Row(
@@ -178,7 +187,7 @@ class _MainLayoutState extends State<MainLayout> {
               width: 320,
               child: _navIndex == 4
                   ? const SettingsScreen(showBackButton: false)
-                  : _buildChatListColumn(context, isDark, pinnedConvs, unpinnedConvs, chatState, hiddenMgr),
+                  : _buildChatListColumn(context, isDark, pinnedConvs, unpinnedConvs, chatState, hiddenMgr, isDesktop: true),
             ),
 
             // Pane 3: Main Chat Stage
@@ -211,19 +220,12 @@ class _MainLayoutState extends State<MainLayout> {
       );
     }
 
-    // On mobile: if an active conversation is open, show the chat stage with back button
-    if (chatState.activeConversation != null) {
-      return Scaffold(
-        body: _buildChatStage(context, isDark, chatState, authState, isMobile: true),
-      );
-    }
-
-    // Otherwise show the Conversations List screen
+    // Default Mobile View: Always show the Conversations List screen with Bottom Navigation
     return Scaffold(
       appBar: _buildMobileListAppBar(context, hiddenMgr),
       body: _viewingAllThreads
-          ? _buildAllThreadsView(context, isDark, chatState)
-          : _buildChatListColumn(context, isDark, pinnedConvs, unpinnedConvs, chatState, hiddenMgr),
+          ? _buildAllThreadsView(context, isDark, chatState, isDesktop: false)
+          : _buildChatListColumn(context, isDark, pinnedConvs, unpinnedConvs, chatState, hiddenMgr, isDesktop: false),
       bottomNavigationBar: _buildBottomNav(context),
     );
   }
@@ -502,12 +504,13 @@ class _MainLayoutState extends State<MainLayout> {
     List<Conversation> pinnedConvs,
     List<Conversation> unpinnedConvs,
     ChatState chatState,
-    HiddenChatManager hiddenMgr,
-  ) {
+    HiddenChatManager hiddenMgr, {
+    required bool isDesktop,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-        border: Border(right: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0), width: 1)),
+        border: Border(right: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0), width: isDesktop ? 1 : 0)),
       ),
       child: Column(
         children: [
@@ -544,7 +547,7 @@ class _MainLayoutState extends State<MainLayout> {
                             return ReorderableDelayedDragStartListener(
                               key: ValueKey(c.id),
                               index: idx,
-                              child: _buildConversationTile(context, c, isDark, chatState, hiddenMgr, isPinned: true),
+                              child: _buildConversationTile(context, c, isDark, chatState, hiddenMgr, isPinned: true, isDesktop: isDesktop),
                             );
                           },
                         ),
@@ -572,7 +575,7 @@ class _MainLayoutState extends State<MainLayout> {
                           delegate: SliverChildBuilderDelegate(
                             (ctx, idx) {
                               final c = unpinnedConvs[idx];
-                              return _buildConversationTile(context, c, isDark, chatState, hiddenMgr, isPinned: false);
+                              return _buildConversationTile(context, c, isDark, chatState, hiddenMgr, isPinned: false, isDesktop: isDesktop);
                             },
                             childCount: unpinnedConvs.length,
                           ),
@@ -593,12 +596,13 @@ class _MainLayoutState extends State<MainLayout> {
     ChatState chatState,
     HiddenChatManager hiddenMgr, {
     required bool isPinned,
+    required bool isDesktop,
   }) {
     final isSelected = chatState.activeConversation?.id == c.id;
     final isHidden = hiddenMgr.isHidden(c.id);
 
     return ListTile(
-      selected: isSelected,
+      selected: isDesktop && isSelected,
       selectedTileColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
       leading: Stack(
         children: [
@@ -664,6 +668,16 @@ class _MainLayoutState extends State<MainLayout> {
       ),
       onTap: () {
         chatState.selectConversation(c);
+        if (!isDesktop) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => MobileChatScreen(conversation: c),
+            ),
+          ).then((_) {
+            chatState.selectConversation(null);
+          });
+        }
       },
       onLongPress: () {
         _showChatOptionsModal(context, c, hiddenMgr, chatState);
@@ -671,7 +685,7 @@ class _MainLayoutState extends State<MainLayout> {
     );
   }
 
-  Widget _buildAllThreadsView(BuildContext context, bool isDark, ChatState chatState) {
+  Widget _buildAllThreadsView(BuildContext context, bool isDark, ChatState chatState, {required bool isDesktop}) {
     final threadRoots = chatState.getAllThreadRootMessages();
     final usersMap = {for (var u in chatState.users) u.id: u};
 
@@ -741,6 +755,17 @@ class _MainLayoutState extends State<MainLayout> {
               chatState.selectConversation(conv);
               chatState.openThread(m);
               setState(() => _viewingAllThreads = false);
+              if (!isDesktop) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => MobileChatScreen(conversation: conv),
+                  ),
+                ).then((_) {
+                  chatState.selectConversation(null);
+                  chatState.closeThread();
+                });
+              }
             },
           ),
         );

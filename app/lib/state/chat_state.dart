@@ -78,10 +78,6 @@ class ChatState extends ChangeNotifier {
 
     await _loadPreferences();
 
-    if (_conversations.isNotEmpty && _activeConv == null) {
-      selectConversation(_conversations.first);
-    }
-
     _isLoading = false;
     notifyListeners();
   }
