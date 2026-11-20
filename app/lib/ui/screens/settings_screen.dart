@@ -152,7 +152,7 @@ class SettingsScreen extends StatelessWidget {
                     icon: const Icon(Icons.edit_outlined, size: 18),
                     tooltip: 'Set custom local image',
                     onPressed: () async {
-                      final result = await FilePicker.pickFiles(type: FileType.image);
+                      final result = await FilePicker.platform.pickFiles(type: FileType.image);
                       if (result != null && result.files.single.path != null) {
                         await localAvatarMgr.setOverride(otherUser.id, File(result.files.single.path!));
                       }

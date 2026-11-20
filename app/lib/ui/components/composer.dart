@@ -34,7 +34,7 @@ class _ComposerState extends State<Composer> {
   }
 
   Future<void> _pickFiles() async {
-    final result = await FilePicker.pickFiles(allowMultiple: true);
+    final result = await FilePicker.platform.pickFiles(allowMultiple: true);
     if (result != null && result.files.isNotEmpty) {
       setState(() {
         for (final f in result.files) {

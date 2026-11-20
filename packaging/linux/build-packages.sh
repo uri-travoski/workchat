@@ -45,7 +45,7 @@ echo "✓ Created $DIST_DIR/WorkChat-$VERSION-linux-amd64.deb"
 echo "--> Creating .rpm package..."
 if command -v alien >/dev/null 2>&1; then
   TMP_RPM_DIR=$(mktemp -d)
-  (cd "$TMP_RPM_DIR" && alien -r --nodeps "$DIST_DIR/WorkChat-$VERSION-linux-amd64.deb")
+  (cd "$TMP_RPM_DIR" && alien -r "$DIST_DIR/WorkChat-$VERSION-linux-amd64.deb")
   RPM_FILE=$(find "$TMP_RPM_DIR" -name "*.rpm" | head -n 1)
   if [ -n "$RPM_FILE" ]; then
     cp "$RPM_FILE" "$DIST_DIR/WorkChat-$VERSION-linux-x86_64.rpm"
