@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=WorkChat
+Comment=Lightweight, private self-hosted messaging
+Exec=workchat %u
+Icon=workchat
+Terminal=false
+Type=Application
+Categories=Network;InstantMessaging;Chat;
+MimeType=x-scheme-handler/workchat;
+StartupWMClass=workchat

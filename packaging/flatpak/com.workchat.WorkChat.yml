@@ -1,0 +1,30 @@
+app-id: com.workchat.WorkChat
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: workchat
+finish-args:
+  - --share=network
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+  - --talk-name=org.freedesktop.Notifications
+  - --talk-name=org.freedesktop.secrets
+modules:
+  - name: workchat
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/lib/workchat /app/bin /app/share/applications /app/share/icons/hicolor/512x512/apps
+      - cp -r * /app/lib/workchat/
+      - ln -sf /app/lib/workchat/workchat /app/bin/workchat
+      - install -Dm644 workchat.desktop /app/share/applications/com.workchat.WorkChat.desktop
+      - install -Dm644 workchat-512.png /app/share/icons/hicolor/512x512/apps/com.workchat.WorkChat.png
+      - sed -i 's/^Icon=.*/Icon=com.workchat.WorkChat/' /app/share/applications/com.workchat.WorkChat.desktop
+    sources:
+      - type: dir
+        path: ../../app/build/linux/x64/release/bundle
+      - type: file
+        path: ../linux/workchat.desktop
+      - type: file
+        path: ../../assets/icon/workchat-512.png

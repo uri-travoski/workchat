@@ -1,0 +1,195 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, e.g. v1.1"
+        required: true
+        default: "v1.1"
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  VERSION: ${{ inputs.tag || github.ref_name }}
+
+jobs:
+  release-init:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare release notes & files
+        run: |
+          V="${VERSION#v}"
+          mkdir -p dist-release
+          cp server/docker-compose.yml dist-release/docker-compose.yml
+          cp server/.env.example dist-release/workchat.env.example
+          echo "REL_NAME=WorkChat $V" >> "$GITHUB_ENV"
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.VERSION }}
+          name: ${{ env.REL_NAME }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            dist-release/docker-compose.yml
+            dist-release/workchat.env.example
+
+  server:
+    needs: release-init
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache-dependency-path: server/go.sum
+      - name: Build Server Binaries
+        run: |
+          V="${VERSION#v}"
+          mkdir -p dist
+          cd server
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o "../dist/workchat-server-$V-linux-amd64" cmd/server/main.go
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -ldflags="-s -w" -o "../dist/workchat-server-$V-linux-arm64" cmd/server/main.go
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o "../dist/workchat-server-$V-windows-amd64.exe" cmd/server/main.go
+          cd ../dist
+          for f in *; do sha256sum "$f" > "$f.sha256"; done
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.VERSION }}
+          files: dist/*
+      - name: Docker login & build
+        uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build & push Docker image
+        run: |
+          V="${VERSION#v}"
+          docker build -t ghcr.io/${{ github.repository_owner }}/workchat-server:$V -t ghcr.io/${{ github.repository_owner }}/workchat-server:latest -f server/Dockerfile server
+          docker push ghcr.io/${{ github.repository_owner }}/workchat-server:$V
+          docker push ghcr.io/${{ github.repository_owner }}/workchat-server:latest
+
+  linux:
+    needs: release-init
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev \
+            alien flatpak flatpak-builder libfuse2 curl
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: 'stable'
+          cache: true
+      - name: Build Flutter Linux Bundle
+        run: |
+          cd app
+          flutter config --no-analytics
+          flutter pub get
+          flutter build linux --release
+      - name: Package Linux Artifacts (.deb, .rpm, .AppImage, .flatpak)
+        run: |
+          V="${VERSION#v}"
+          packaging/linux/build-packages.sh "$V"
+          cd dist
+          for f in *.deb *.rpm *.AppImage *.flatpak; do
+            if [ -f "$f" ]; then sha256sum "$f" > "$f.sha256"; fi
+          done
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.VERSION }}
+          files: |
+            dist/*.deb
+            dist/*.rpm
+            dist/*.AppImage
+            dist/*.flatpak
+            dist/*.sha256
+
+  windows:
+    needs: release-init
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: 'stable'
+          cache: true
+      - name: Build Flutter Windows
+        run: |
+          cd app
+          flutter config --no-analytics
+          flutter pub get
+          flutter build windows --release
+      - name: Package Windows (.zip & NSIS installer)
+        shell: bash
+        run: |
+          V="${VERSION#v}"
+          mkdir -p dist
+          # Portable zip
+          powershell Compress-Archive -Path "app/build/windows/x64/runner/Release/*" -DestinationPath "dist/WorkChat-$V-windows-x64-portable.zip"
+          # NSIS installer
+          choco install nsis -y --no-progress
+          makensis "//DVERSION=$V" packaging/windows/installer.nsi
+          cd dist
+          for f in *.zip *.exe; do
+            if [ -f "$f" ]; then sha256sum "$f" > "$f.sha256"; fi
+          done
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.VERSION }}
+          files: |
+            dist/*.zip
+            dist/*.exe
+            dist/*.sha256
+
+  android:
+    needs: release-init
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: 'stable'
+          cache: true
+      - name: Build Android APKs (Split per ABI: arm64-v8a, armeabi-v7a, x86_64)
+        run: |
+          cd app
+          flutter config --no-analytics
+          flutter pub get
+          flutter build apk --release --split-per-abi
+          cd ..
+          mkdir -p dist
+          V="${VERSION#v}"
+          out="app/build/app/outputs/flutter-apk"
+          cp "$out"/*arm64-v8a*.apk "dist/WorkChat-$V-android-arm64-v8a.apk" || true
+          cp "$out"/*armeabi-v7a*.apk "dist/WorkChat-$V-android-armeabi-v7a.apk" || true
+          cp "$out"/*x86_64*.apk "dist/WorkChat-$V-android-x86_64.apk" || true
+          cp "$out"/*universal*.apk "dist/WorkChat-$V-android-universal.apk" || true
+          cd dist
+          for f in *.apk; do
+            if [ -f "$f" ]; then sha256sum "$f" > "$f.sha256"; fi
+          done
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.VERSION }}
+          files: |
+            dist/*.apk
+            dist/*.sha256

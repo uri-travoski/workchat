@@ -1,0 +1,44 @@
+# Git ignore for WorkChat
+
+# Binaries & Distribution
+dist/
+dist-release/
+target/
+*.exe
+*.deb
+*.rpm
+*.AppImage
+*.flatpak
+*.apk
+*.sha256
+
+# Go
+server/workchat-server
+server/data/
+server/*.db
+server/*.db-wal
+server/*.db-shm
+
+# Flutter / Dart
+app/.dart_tool/
+app/.flutter-plugins
+app/.flutter-plugins-dependencies
+app/.packages
+app/.pub-cache/
+app/.pub/
+app/build/
+app/android/.gradle/
+app/android/local.properties
+app/ios/Pods/
+app/ios/.symlinks/
+app/windows/flutter/ephemeral/
+app/linux/flutter/ephemeral/
+app/macos/Flutter/ephemeral/
+
+# Tools & caches
+packaging/.tools/
+.idea/
+*.iml
+.DS_Store
+*.log
+credentials.md

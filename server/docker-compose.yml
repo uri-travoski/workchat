@@ -1,0 +1,47 @@
+name: workchat
+
+services:
+  workchat:
+    image: ${WORKCHAT_IMAGE:-ghcr.io/uri-travoski/workchat-server:1.1.0}
+    restart: unless-stopped
+    ports:
+      - "${WORKCHAT_BIND_ADDR:-0.0.0.0}:${WORKCHAT_PORT:-8080}:8080"
+    environment:
+      WORKCHAT_PUBLIC_URL: ${WORKCHAT_PUBLIC_URL:-http://localhost:8080}
+      WORKCHAT_NAME: ${WORKCHAT_NAME:-WorkChat}
+      WORKCHAT_BOOTSTRAP_ADMIN: ${WORKCHAT_BOOTSTRAP_ADMIN:-}
+      WORKCHAT_BOOTSTRAP_EMAIL: ${WORKCHAT_BOOTSTRAP_EMAIL:-}
+      WORKCHAT_MAX_UPLOAD_MB: ${WORKCHAT_MAX_UPLOAD_MB:-100}
+      WORKCHAT_NTFY_URL: ${WORKCHAT_NTFY_URL:-http://ntfy:80}
+      WORKCHAT_BACKUP_PASSPHRASE: ${WORKCHAT_BACKUP_PASSPHRASE:-}
+      WORKCHAT_DATA_DIR: /data
+    volumes:
+      - workchat-data:/data
+    depends_on:
+      - ntfy
+    networks:
+      - workchat-net
+
+  ntfy:
+    image: binwiederhier/ntfy:v2.11.0
+    restart: unless-stopped
+    command: serve
+    environment:
+      NTFY_BASE_URL: ${NTFY_BASE_URL:-http://localhost:8082}
+      NTFY_UPSTREAM_BASE_URL: https://ntfy.sh
+    volumes:
+      - ntfy-data:/var/cache/ntfy
+      - ntfy-etc:/etc/ntfy
+    ports:
+      - "${NTFY_BIND_ADDR:-0.0.0.0}:${NTFY_PORT:-8082}:80"
+    networks:
+      - workchat-net
+
+volumes:
+  workchat-data:
+  ntfy-data:
+  ntfy-etc:
+
+networks:
+  workchat-net:
+    driver: bridge
