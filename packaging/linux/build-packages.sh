@@ -96,15 +96,39 @@ rm -rf "$APPDIR"
 
 # 4. Build .flatpak single-file bundle
 echo "--> Creating .flatpak package..."
-if command -v flatpak-builder >/dev/null 2>&1; then
-  TMP_FP_BUILD=$(mktemp -d)
-  TMP_FP_REPO=$(mktemp -d)
-  flatpak-builder --force-clean --repo="$TMP_FP_REPO" "$TMP_FP_BUILD" "$ROOT_DIR/packaging/flatpak/com.workchat.WorkChat.yml"
-  flatpak build-bundle "$TMP_FP_REPO" "$DIST_DIR/WorkChat-$VERSION-linux-x86_64.flatpak" com.workchat.WorkChat
-  rm -rf "$TMP_FP_BUILD" "$TMP_FP_REPO"
+if command -v flatpak >/dev/null 2>&1; then
+  TMP_FP_DIR=$(mktemp -d)
+  APP_DIR="$TMP_FP_DIR/app"
+  REPO_DIR="$TMP_FP_DIR/repo"
+  mkdir -p "$APP_DIR/files/lib/workchat" "$APP_DIR/files/bin" "$APP_DIR/files/share/applications" "$APP_DIR/files/share/icons/hicolor/512x512/apps" "$APP_DIR/export"
+  
+  cp -r "$BUNDLE_DIR/"* "$APP_DIR/files/lib/workchat/"
+  ln -sf "/app/lib/workchat/workchat" "$APP_DIR/files/bin/workchat"
+  cp "$ROOT_DIR/packaging/linux/workchat.desktop" "$APP_DIR/files/share/applications/com.workchat.WorkChat.desktop"
+  cp "$ROOT_DIR/assets/icon/workchat-512.png" "$APP_DIR/files/share/icons/hicolor/512x512/apps/com.workchat.WorkChat.png"
+  sed -i 's/^Icon=.*/Icon=com.workchat.WorkChat/' "$APP_DIR/files/share/applications/com.workchat.WorkChat.desktop"
+
+  cat << EOF > "$APP_DIR/metadata"
+[Application]
+name=com.workchat.WorkChat
+runtime=org.freedesktop.Platform/x86_64/24.08
+sdk=org.freedesktop.Sdk/x86_64/24.08
+command=workchat
+
+[Context]
+shared=network;ipc;
+sockets=fallback-x11;wayland;
+devices=dri;
+talk-name=org.freedesktop.Notifications;org.freedesktop.secrets;
+EOF
+
+  ostree init --mode=archive --repo="$REPO_DIR"
+  flatpak build-export "$REPO_DIR" "$APP_DIR"
+  flatpak build-bundle "$REPO_DIR" "$DIST_DIR/WorkChat-$VERSION-linux-x86_64.flatpak" com.workchat.WorkChat
+  rm -rf "$TMP_FP_DIR"
   echo "✓ Created $DIST_DIR/WorkChat-$VERSION-linux-x86_64.flatpak"
 else
-  echo "flatpak-builder not available locally, will build in CI"
+  echo "flatpak not available locally, will build in CI"
 fi
 
 echo "=== Linux packaging completed! ==="
