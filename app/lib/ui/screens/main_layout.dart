@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/conversation.dart';
@@ -5,6 +6,7 @@ import '../../models/message.dart';
 import '../../state/auth_state.dart';
 import '../../state/chat_state.dart';
 import '../../state/hidden_chat_manager.dart';
+import '../../theme/theme_manager.dart';
 import '../components/composer.dart';
 import '../components/message_bubble.dart';
 import 'hidden_lock_dialog.dart';
@@ -23,6 +25,18 @@ class _MainLayoutState extends State<MainLayout> {
   // Navigation tabs: All, DMs, Channels, Bots, Settings
   int _navIndex = 0;
   static const List<String> _tabs = ['All', 'DMs', 'Channels', 'Bots', 'Settings'];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (Platform.isAndroid || Platform.isIOS) {
+        if (mounted) {
+          context.read<ChatState>().selectConversation(null);
+        }
+      }
+    });
+  }
 
   // Search in chat list
   bool _isSearchingList = false;
@@ -116,9 +130,12 @@ class _MainLayoutState extends State<MainLayout> {
     final chatState = context.watch<ChatState>();
     final authState = context.watch<AuthState>();
     final hiddenMgr = context.watch<HiddenChatManager>();
+    final themeMgr = context.watch<ThemeManager>();
+    final activeTheme = themeMgr.activeTheme;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final isDesktop = MediaQuery.of(context).size.width >= 800;
+    final isMobileDevice = Platform.isAndroid || Platform.isIOS;
+    final isDesktop = !isMobileDevice && MediaQuery.of(context).size.width >= 900;
 
     // Filter and sort conversations
     final selectedCategory = _tabs[_navIndex];
@@ -222,6 +239,7 @@ class _MainLayoutState extends State<MainLayout> {
 
     // Default Mobile View: Always show the Conversations List screen with Bottom Navigation
     return Scaffold(
+      backgroundColor: activeTheme.chatListBg(isDark),
       appBar: _buildMobileListAppBar(context, hiddenMgr),
       body: _viewingAllThreads
           ? _buildAllThreadsView(context, isDark, chatState, isDesktop: false)
@@ -231,8 +249,14 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   PreferredSizeWidget _buildMobileListAppBar(BuildContext context, HiddenChatManager hiddenMgr) {
+    final themeMgr = context.watch<ThemeManager>();
+    final activeTheme = themeMgr.activeTheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (_isSearchingList) {
       return AppBar(
+        backgroundColor: activeTheme.surfaceHeaderBg(isDark),
+        elevation: 1,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -270,6 +294,8 @@ class _MainLayoutState extends State<MainLayout> {
     }
 
     return AppBar(
+      backgroundColor: activeTheme.surfaceHeaderBg(isDark),
+      elevation: 1,
       title: Text(_viewingAllThreads ? 'All Message Threads' : 'WorkChat'),
       actions: [
         // Search icon to the left of menu
@@ -378,17 +404,19 @@ class _MainLayoutState extends State<MainLayout> {
 
   Widget _buildBottomNav(BuildContext context) {
     final theme = Theme.of(context);
-    final navTheme = theme.bottomNavigationBarTheme;
+    final themeMgr = context.watch<ThemeManager>();
+    final activeTheme = themeMgr.activeTheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       decoration: BoxDecoration(
-        color: navTheme.backgroundColor ?? theme.colorScheme.surface,
+        color: activeTheme.surfaceHeaderBg(isDark),
         border: Border(
-          top: BorderSide(color: theme.dividerColor, width: 0.8),
+          top: BorderSide(color: activeTheme.borderColor(isDark), width: 1),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withOpacity(0.12),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -397,9 +425,9 @@ class _MainLayoutState extends State<MainLayout> {
       child: BottomNavigationBar(
         currentIndex: _navIndex,
         type: BottomNavigationBarType.fixed,
-        backgroundColor: navTheme.backgroundColor ?? theme.colorScheme.surface,
-        selectedItemColor: navTheme.selectedItemColor ?? theme.colorScheme.primary,
-        unselectedItemColor: navTheme.unselectedItemColor ?? Colors.grey,
+        backgroundColor: activeTheme.surfaceHeaderBg(isDark),
+        selectedItemColor: activeTheme.accentColor(isDark),
+        unselectedItemColor: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
         selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
         unselectedLabelStyle: const TextStyle(fontSize: 11),
         onTap: (idx) {
@@ -420,6 +448,9 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   Widget _buildLeftRail(BuildContext context, bool isDark, HiddenChatManager hiddenMgr) {
+    final themeMgr = context.watch<ThemeManager>();
+    final activeTheme = themeMgr.activeTheme;
+
     final tabs = [
       {'name': 'All', 'icon': Icons.forum_outlined},
       {'name': 'DMs', 'icon': Icons.person_outline},
@@ -431,8 +462,8 @@ class _MainLayoutState extends State<MainLayout> {
     return Container(
       width: 68,
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
-        border: Border(right: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0), width: 1)),
+        color: activeTheme.leftRailBg(isDark),
+        border: Border(right: BorderSide(color: activeTheme.borderColor(isDark), width: 1)),
       ),
       child: Column(
         children: [
@@ -442,9 +473,9 @@ class _MainLayoutState extends State<MainLayout> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: const Color(0xFF1E293B),
+              color: activeTheme.surfaceHeaderBg(isDark),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: const Color(0xFF38BDF8), width: 1.5),
+              border: Border.all(color: activeTheme.accentColor(isDark), width: 1.5),
             ),
             alignment: Alignment.center,
             child: const Text('W', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22)),
@@ -469,7 +500,7 @@ class _MainLayoutState extends State<MainLayout> {
                     child: Container(
                       height: 48,
                       decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFF2563EB) : Colors.transparent,
+                        color: isSelected ? activeTheme.accentColor(isDark) : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Column(
@@ -507,10 +538,13 @@ class _MainLayoutState extends State<MainLayout> {
     HiddenChatManager hiddenMgr, {
     required bool isDesktop,
   }) {
+    final themeMgr = context.watch<ThemeManager>();
+    final activeTheme = themeMgr.activeTheme;
+
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-        border: Border(right: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0), width: isDesktop ? 1 : 0)),
+        color: activeTheme.chatListBg(isDark),
+        border: Border(right: BorderSide(color: activeTheme.borderColor(isDark), width: isDesktop ? 1 : 0)),
       ),
       child: Column(
         children: [
@@ -598,16 +632,18 @@ class _MainLayoutState extends State<MainLayout> {
     required bool isPinned,
     required bool isDesktop,
   }) {
+    final themeMgr = context.watch<ThemeManager>();
+    final activeTheme = themeMgr.activeTheme;
     final isSelected = chatState.activeConversation?.id == c.id;
     final isHidden = hiddenMgr.isHidden(c.id);
 
     return ListTile(
       selected: isDesktop && isSelected,
-      selectedTileColor: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0),
+      selectedTileColor: activeTheme.surfaceHeaderBg(isDark),
       leading: Stack(
         children: [
           CircleAvatar(
-            backgroundColor: c.kind == 'channel' ? const Color(0xFF4A83BD) : const Color(0xFF2563EB),
+            backgroundColor: activeTheme.accentColor(isDark),
             child: Icon(c.kind == 'channel' ? Icons.tag : Icons.person, color: Colors.white, size: 18),
           ),
           if (isPinned)
@@ -656,7 +692,7 @@ class _MainLayoutState extends State<MainLayout> {
           if (c.unreadCount > 0)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: const BoxDecoration(color: Color(0xFF2563EB), borderRadius: BorderRadius.all(Radius.circular(10))),
+              decoration: BoxDecoration(color: activeTheme.accentColor(isDark), borderRadius: const BorderRadius.all(Radius.circular(10))),
               child: Text('${c.unreadCount}', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
             ),
           if (isPinned)
@@ -686,6 +722,8 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   Widget _buildAllThreadsView(BuildContext context, bool isDark, ChatState chatState, {required bool isDesktop}) {
+    final themeMgr = context.watch<ThemeManager>();
+    final activeTheme = themeMgr.activeTheme;
     final threadRoots = chatState.getAllThreadRootMessages();
     final usersMap = {for (var u in chatState.users) u.id: u};
 
@@ -715,9 +753,9 @@ class _MainLayoutState extends State<MainLayout> {
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           child: ListTile(
-            leading: const CircleAvatar(
-              backgroundColor: Color(0xFF38BDF8),
-              child: Icon(Icons.forum_rounded, color: Colors.white, size: 18),
+            leading: CircleAvatar(
+              backgroundColor: activeTheme.accentColor(isDark),
+              child: const Icon(Icons.forum_rounded, color: Colors.white, size: 18),
             ),
             title: Row(
               children: [
@@ -741,11 +779,11 @@ class _MainLayoutState extends State<MainLayout> {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Icon(Icons.reply_rounded, size: 14, color: Color(0xFF38BDF8)),
+                    Icon(Icons.reply_rounded, size: 14, color: activeTheme.accentColor(isDark)),
                     const SizedBox(width: 4),
                     Text(
                       '${m.replyCount} replies',
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF38BDF8)),
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: activeTheme.accentColor(isDark)),
                     ),
                   ],
                 ),
@@ -780,16 +818,21 @@ class _MainLayoutState extends State<MainLayout> {
     AuthState authState, {
     bool isMobile = false,
   }) {
+    final themeMgr = context.watch<ThemeManager>();
+    final activeTheme = themeMgr.activeTheme;
     final activeConv = chatState.activeConversation;
     if (activeConv == null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.forum_outlined, size: 48, color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
-            const SizedBox(height: 12),
-            const Text('Select a chat to begin messaging', style: TextStyle(color: Colors.grey)),
-          ],
+      return Container(
+        color: activeTheme.chatStageBg(isDark),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.forum_outlined, size: 48, color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1)),
+              const SizedBox(height: 12),
+              const Text('Select a chat to begin messaging', style: TextStyle(color: Colors.grey)),
+            ],
+          ),
         ),
       );
     }
@@ -806,8 +849,10 @@ class _MainLayoutState extends State<MainLayout> {
       messages = messages.where((m) => m.isSaved).toList();
     }
 
-    return Column(
-      children: [
+    return Container(
+      color: activeTheme.chatStageBg(isDark),
+      child: Column(
+        children: [
         // Stage Header (or WhatsApp-style search header)
         if (_isSearchingConv)
           _buildConvSearchHeader(context, messages)
@@ -898,6 +943,7 @@ class _MainLayoutState extends State<MainLayout> {
           },
         ),
       ],
+      ),
     );
   }
 
@@ -910,14 +956,16 @@ class _MainLayoutState extends State<MainLayout> {
     bool isMobile,
   ) {
     final hiddenMgr = context.watch<HiddenChatManager>();
+    final themeMgr = context.watch<ThemeManager>();
+    final activeTheme = themeMgr.activeTheme;
     final isHidden = hiddenMgr.isHidden(activeConv.id);
 
     return Container(
       height: 56,
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        border: Border(bottom: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0), width: 1)),
+        color: activeTheme.surfaceHeaderBg(isDark),
+        border: Border(bottom: BorderSide(color: activeTheme.borderColor(isDark), width: 1)),
       ),
       child: Row(
         children: [
@@ -1066,13 +1114,19 @@ class _MainLayoutState extends State<MainLayout> {
 
   // WhatsApp-style Search Bar inside Conversation
   Widget _buildConvSearchHeader(BuildContext context, List<Message> messages) {
+    final themeMgr = context.watch<ThemeManager>();
+    final activeTheme = themeMgr.activeTheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final matchCount = _matchedIndices.length;
     final currentPos = matchCount > 0 ? _currentMatchPointer + 1 : 0;
 
     return Container(
       height: 56,
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      color: Theme.of(context).cardColor,
+      decoration: BoxDecoration(
+        color: activeTheme.surfaceHeaderBg(isDark),
+        border: Border(bottom: BorderSide(color: activeTheme.borderColor(isDark), width: 1)),
+      ),
       child: Row(
         children: [
           IconButton(
@@ -1299,13 +1353,15 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   Widget _buildChannelInfoDrawer(BuildContext context, bool isDark, ChatState chatState) {
+    final themeMgr = context.watch<ThemeManager>();
+    final activeTheme = themeMgr.activeTheme;
     final c = chatState.activeConversation;
     if (c == null) return const SizedBox();
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F172A) : Colors.white,
-        border: Border(left: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+        color: activeTheme.chatStageBg(isDark),
+        border: Border(left: BorderSide(color: activeTheme.borderColor(isDark))),
       ),
       child: Column(
         children: [
@@ -1313,8 +1369,8 @@ class _MainLayoutState extends State<MainLayout> {
             height: 52,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
-              border: Border(bottom: BorderSide(color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0))),
+              color: activeTheme.surfaceHeaderBg(isDark),
+              border: Border(bottom: BorderSide(color: activeTheme.borderColor(isDark))),
             ),
             child: Row(
               children: [
@@ -1332,7 +1388,7 @@ class _MainLayoutState extends State<MainLayout> {
                 Center(
                   child: CircleAvatar(
                     radius: 36,
-                    backgroundColor: const Color(0xFF2563EB),
+                    backgroundColor: activeTheme.accentColor(isDark),
                     child: Icon(c.kind == 'channel' ? Icons.tag : Icons.person, size: 36, color: Colors.white),
                   ),
                 ),

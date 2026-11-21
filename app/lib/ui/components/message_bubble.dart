@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../models/message.dart';
 import '../../services/file_service.dart';
+import '../../theme/theme_manager.dart';
 import 'avatar_widget.dart';
 import 'file_type_helper.dart';
 import 'reaction_bar.dart';
@@ -43,13 +45,17 @@ class MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final themeMgr = context.watch<ThemeManager>();
+    final activeTheme = themeMgr.activeTheme;
     final isDark = theme.brightness == Brightness.dark;
 
     final bubbleBg = isMe
-        ? (isDark ? const Color(0xFF2563EB) : const Color(0xFF4A83BD))
-        : (isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9));
+        ? activeTheme.myBubbleBg(isDark)
+        : activeTheme.theirBubbleBg(isDark);
 
-    final textColor = isMe ? Colors.white : (isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A));
+    final textColor = isMe
+        ? activeTheme.myBubbleTextColor(isDark)
+        : activeTheme.theirBubbleTextColor(isDark);
     final timeStr = DateFormat('HH:mm').format(DateTime.fromMillisecondsSinceEpoch(message.ts));
 
     return Padding(
@@ -85,10 +91,10 @@ class MessageBubble extends StatelessWidget {
                       padding: const EdgeInsets.only(left: 4, bottom: 2),
                       child: Text(
                         senderName,
-                        style: TextStyle(
-                          fontSize: 12,
+                        style: theme.textTheme.bodySmall?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                          fontFamily: themeMgr.fontFamily,
                         ),
                       ),
                     ),
@@ -109,7 +115,7 @@ class MessageBubble extends StatelessWidget {
                           bottomRight: Radius.circular(isMe ? 4 : 16),
                         ),
                         border: !isMe && isDark
-                            ? Border.all(color: const Color(0xFF334155), width: 1)
+                            ? Border.all(color: activeTheme.borderColor(isDark), width: 1)
                             : null,
                       ),
                       child: Column(
@@ -153,10 +159,15 @@ class MessageBubble extends StatelessWidget {
                               data: message.body,
                               selectable: false,
                               styleSheet: MarkdownStyleSheet.fromTheme(theme).copyWith(
-                                p: TextStyle(color: textColor, fontSize: 14),
-                                code: TextStyle(
-                                  backgroundColor: isMe ? Colors.blue[900] : (isDark ? Colors.black38 : Colors.grey[200]),
+                                p: theme.textTheme.bodyMedium?.copyWith(
                                   color: textColor,
+                                  fontFamily: themeMgr.fontFamily,
+                                ),
+                                code: TextStyle(
+                                  fontFamily: 'monospace',
+                                  backgroundColor: isMe ? Colors.black.withOpacity(0.2) : (isDark ? Colors.black38 : Colors.grey[200]),
+                                  color: textColor,
+                                  fontSize: (theme.textTheme.bodyMedium?.fontSize ?? 14),
                                 ),
                               ),
                             ),

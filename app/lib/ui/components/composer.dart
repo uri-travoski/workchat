@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../theme/theme_manager.dart';
 import 'formatting_toolbar.dart';
 
 class Composer extends StatefulWidget {
@@ -56,14 +58,16 @@ class _ComposerState extends State<Composer> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final themeMgr = context.watch<ThemeManager>();
+    final activeTheme = themeMgr.activeTheme;
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F172A) : Colors.white,
+        color: activeTheme.surfaceHeaderBg(isDark),
         border: Border(
           top: BorderSide(
-            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+            color: activeTheme.borderColor(isDark),
             width: 1,
           ),
         ),
@@ -138,7 +142,7 @@ class _ComposerState extends State<Composer> {
                 IconButton(
                   icon: Icon(
                     Icons.send_rounded,
-                    color: isDark ? const Color(0xFF38BDF8) : const Color(0xFF2563EB),
+                    color: activeTheme.accentColor(isDark),
                   ),
                   tooltip: 'Send message',
                   onPressed: _handleSend,

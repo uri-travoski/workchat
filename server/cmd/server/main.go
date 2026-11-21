@@ -27,7 +27,7 @@ import (
 )
 
 func main() {
-	log.Println("Starting WorkChat Server v1.2.2...")
+	log.Println("Starting WorkChat Server v1.2.3...")
 
 	cfg := config.Load()
 

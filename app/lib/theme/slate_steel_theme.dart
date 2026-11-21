@@ -6,14 +6,44 @@ class SlateSteelTheme implements AppThemeDefinition {
   String get id => 'slate_steel';
 
   @override
-  String get name => 'Slate Steel (Icon Palette)';
+  String get name => 'Slate Steel (Original)';
 
   static const Color slateDark = Color(0xFF0F172A);
-  static const Color slateSurface = Color(0xFF1E293B); // Exact background of app-icon.svg
+  static const Color slateSurface = Color(0xFF1E293B);
   static const Color slateBorder = Color(0xFF334155);
-  static const Color steelBlueAccent = Color(0xFF4A83BD); // Steel-blue from PRD
+  static const Color steelBlueAccent = Color(0xFF4A83BD);
   static const Color slateLightAccent = Color(0xFF38BDF8);
   static const Color crispWhite = Color(0xFFFFFFFF);
+
+  @override
+  Color chatStageBg(bool isDark) => isDark ? slateDark : const Color(0xFFF8FAFC);
+
+  @override
+  Color chatListBg(bool isDark) => isDark ? slateDark : const Color(0xFFF8FAFC);
+
+  @override
+  Color surfaceHeaderBg(bool isDark) => isDark ? slateSurface : Colors.white;
+
+  @override
+  Color leftRailBg(bool isDark) => isDark ? slateSurface : const Color(0xFFF1F5F9);
+
+  @override
+  Color myBubbleBg(bool isDark) => isDark ? const Color(0xFF2563EB) : steelBlueAccent;
+
+  @override
+  Color myBubbleTextColor(bool isDark) => crispWhite;
+
+  @override
+  Color theirBubbleBg(bool isDark) => isDark ? slateSurface : const Color(0xFFF1F5F9);
+
+  @override
+  Color theirBubbleTextColor(bool isDark) => isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A);
+
+  @override
+  Color accentColor(bool isDark) => isDark ? slateLightAccent : steelBlueAccent;
+
+  @override
+  Color borderColor(bool isDark) => isDark ? slateBorder : const Color(0xFFE2E8F0);
 
   @override
   ThemeData get darkTheme {
@@ -52,19 +82,14 @@ class SlateSteelTheme implements AppThemeDefinition {
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: slateSurface,
+        foregroundColor: crispWhite,
         elevation: 0,
         scrolledUnderElevation: 0,
         titleTextStyle: TextStyle(
           color: crispWhite,
           fontSize: 18,
           fontWeight: FontWeight.w600,
-          fontFamily: 'Noto Sans',
         ),
-      ),
-      textTheme: const TextTheme(
-        bodyLarge: TextStyle(color: Color(0xFFF8FAFC), fontFamily: 'Noto Sans'),
-        bodyMedium: TextStyle(color: Color(0xFFCBD5E1), fontFamily: 'Noto Sans'),
-        bodySmall: TextStyle(color: Color(0xFF94A3B8), fontFamily: 'Noto Sans'),
       ),
     );
   }
@@ -106,19 +131,14 @@ class SlateSteelTheme implements AppThemeDefinition {
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.white,
+        foregroundColor: Color(0xFF0F172A),
         elevation: 0,
         scrolledUnderElevation: 0,
         titleTextStyle: TextStyle(
           color: Color(0xFF0F172A),
           fontSize: 18,
           fontWeight: FontWeight.w600,
-          fontFamily: 'Noto Sans',
         ),
-      ),
-      textTheme: const TextTheme(
-        bodyLarge: TextStyle(color: Color(0xFF0F172A), fontFamily: 'Noto Sans'),
-        bodyMedium: TextStyle(color: Color(0xFF334155), fontFamily: 'Noto Sans'),
-        bodySmall: TextStyle(color: Color(0xFF64748B), fontFamily: 'Noto Sans'),
       ),
     );
   }

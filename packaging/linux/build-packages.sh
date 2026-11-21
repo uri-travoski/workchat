@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="${1:-1.2.2}"
+VERSION="${1:-1.2.3}"
 VERSION="${VERSION#v}"
 ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 BUNDLE_DIR="$ROOT_DIR/app/build/linux/x64/release/bundle"

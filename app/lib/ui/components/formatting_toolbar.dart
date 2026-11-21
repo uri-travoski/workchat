@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../theme/theme_manager.dart';
 
 class FormattingToolbar extends StatelessWidget {
   final TextEditingController controller;
@@ -49,6 +51,8 @@ class FormattingToolbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final themeMgr = context.watch<ThemeManager>();
+    final activeTheme = themeMgr.activeTheme;
     final isDark = theme.brightness == Brightness.dark;
     final iconColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
 
@@ -56,10 +60,10 @@ class FormattingToolbar extends StatelessWidget {
       height: 38,
       padding: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+        color: activeTheme.surfaceHeaderBg(isDark),
         border: Border(
           bottom: BorderSide(
-            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+            color: activeTheme.borderColor(isDark),
             width: 1,
           ),
         ),

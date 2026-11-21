@@ -6,16 +6,53 @@ class PurpleOrangeTheme implements AppThemeDefinition {
   String get id => 'purple_orange';
 
   @override
-  String get name => 'Purple + Sunset Orange';
+  String get name => 'Purple + Sunset Orange (High Contrast)';
 
   static const Color darkBg = Color(0xFF0F0A1C);
+  static const Color darkListBg = Color(0xFF140D26);
   static const Color darkSurface = Color(0xFF1E1435);
+  static const Color darkBubbleMy = Color(0xFF7C3AED);
+  static const Color darkBubbleTheir = Color(0xFF2D1B4E);
   static const Color darkBorder = Color(0xFF3B2A59);
   static const Color purplePrimary = Color(0xFF8B5CF6);
   static const Color orangeAccent = Color(0xFFF97316);
+
   static const Color lightBg = Color(0xFFFDF8FF);
+  static const Color lightListBg = Color(0xFFFAF5FF);
   static const Color lightSurface = Colors.white;
+  static const Color lightBubbleMy = Color(0xFF8B5CF6);
+  static const Color lightBubbleTheir = Color(0xFFF3E8FF);
   static const Color lightBorder = Color(0xFFE9D5FF);
+
+  @override
+  Color chatStageBg(bool isDark) => isDark ? darkBg : lightBg;
+
+  @override
+  Color chatListBg(bool isDark) => isDark ? darkListBg : lightListBg;
+
+  @override
+  Color surfaceHeaderBg(bool isDark) => isDark ? darkSurface : lightSurface;
+
+  @override
+  Color leftRailBg(bool isDark) => isDark ? darkSurface : const Color(0xFFF3E8FF);
+
+  @override
+  Color myBubbleBg(bool isDark) => isDark ? darkBubbleMy : lightBubbleMy;
+
+  @override
+  Color myBubbleTextColor(bool isDark) => Colors.white;
+
+  @override
+  Color theirBubbleBg(bool isDark) => isDark ? darkBubbleTheir : lightBubbleTheir;
+
+  @override
+  Color theirBubbleTextColor(bool isDark) => isDark ? const Color(0xFFFAF5FF) : const Color(0xFF2E1065);
+
+  @override
+  Color accentColor(bool isDark) => orangeAccent;
+
+  @override
+  Color borderColor(bool isDark) => isDark ? darkBorder : lightBorder;
 
   @override
   ThemeData get darkTheme {
@@ -26,6 +63,7 @@ class PurpleOrangeTheme implements AppThemeDefinition {
       primaryColor: purplePrimary,
       colorScheme: const ColorScheme.dark(
         primary: purplePrimary,
+        primaryContainer: darkSurface,
         secondary: orangeAccent,
         surface: darkSurface,
         onSurface: Color(0xFFFAF5FF),
@@ -74,6 +112,7 @@ class PurpleOrangeTheme implements AppThemeDefinition {
       primaryColor: purplePrimary,
       colorScheme: const ColorScheme.light(
         primary: purplePrimary,
+        primaryContainer: Color(0xFFF3E8FF),
         secondary: orangeAccent,
         surface: lightSurface,
         onSurface: Color(0xFF1E1435),

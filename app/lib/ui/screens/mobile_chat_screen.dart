@@ -5,6 +5,7 @@ import '../../models/message.dart';
 import '../../state/auth_state.dart';
 import '../../state/chat_state.dart';
 import '../../state/hidden_chat_manager.dart';
+import '../../theme/theme_manager.dart';
 import '../components/composer.dart';
 import '../components/message_bubble.dart';
 import 'hidden_lock_dialog.dart';
@@ -95,6 +96,10 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
     final chatState = context.watch<ChatState>();
     final authState = context.watch<AuthState>();
     final hiddenMgr = context.watch<HiddenChatManager>();
+    final themeMgr = context.watch<ThemeManager>();
+    final activeTheme = themeMgr.activeTheme;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final isHidden = hiddenMgr.isHidden(widget.conversation.id);
 
     var messages = chatState.getMessages(widget.conversation.id);
@@ -110,9 +115,10 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
     }
 
     return Scaffold(
+      backgroundColor: activeTheme.chatStageBg(isDark),
       appBar: _isSearching
-          ? _buildSearchAppBar(messages)
-          : _buildNormalAppBar(context, isHidden, hiddenMgr, typingUser, chatState),
+          ? _buildSearchAppBar(messages, activeTheme, isDark)
+          : _buildNormalAppBar(context, isHidden, hiddenMgr, typingUser, chatState, activeTheme, isDark),
       body: SafeArea(
         top: false,
         child: Column(
@@ -212,8 +218,17 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
     HiddenChatManager hiddenMgr,
     String? typingUser,
     ChatState chatState,
+    dynamic activeTheme,
+    bool isDark,
   ) {
     return AppBar(
+      backgroundColor: activeTheme.surfaceHeaderBg(isDark),
+      elevation: 1,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        tooltip: 'Back to conversations',
+        onPressed: () => Navigator.pop(context),
+      ),
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -341,11 +356,13 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
     );
   }
 
-  PreferredSizeWidget _buildSearchAppBar(List<Message> messages) {
+  PreferredSizeWidget _buildSearchAppBar(List<Message> messages, dynamic activeTheme, bool isDark) {
     final matchCount = _matchedIndices.length;
     final currentPos = matchCount > 0 ? _currentMatchPointer + 1 : 0;
 
     return AppBar(
+      backgroundColor: activeTheme.surfaceHeaderBg(isDark),
+      elevation: 1,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         onPressed: () {

@@ -50,6 +50,18 @@ class WorkChatApp extends StatelessWidget {
             theme: themeMgr.lightTheme,
             darkTheme: themeMgr.darkTheme,
             themeMode: themeMgr.themeMode,
+            builder: (ctx, child) {
+              final theme = Theme.of(ctx);
+              return DefaultTextStyle(
+                style: TextStyle(
+                  fontFamily: themeMgr.fontFamily,
+                  fontSize: (14.0 + themeMgr.fontSizeDelta).clamp(9.0, 36.0),
+                  fontWeight: themeMgr.effectiveBodyWeight,
+                  color: theme.colorScheme.onSurface,
+                ),
+                child: child!,
+              );
+            },
             home: const RootGate(),
           );
         },

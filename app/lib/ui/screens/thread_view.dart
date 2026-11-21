@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/message.dart';
 import '../../state/auth_state.dart';
 import '../../state/chat_state.dart';
+import '../../theme/theme_manager.dart';
 import '../components/composer.dart';
 import '../components/message_bubble.dart';
 
@@ -20,6 +21,8 @@ class ThreadView extends StatelessWidget {
   Widget build(BuildContext context) {
     final chatState = context.watch<ChatState>();
     final authState = context.read<AuthState>();
+    final themeMgr = context.watch<ThemeManager>();
+    final activeTheme = themeMgr.activeTheme;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -28,10 +31,10 @@ class ThreadView extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF0F172A) : Colors.white,
+        color: activeTheme.chatStageBg(isDark),
         border: Border(
           left: BorderSide(
-            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+            color: activeTheme.borderColor(isDark),
             width: 1,
           ),
         ),
@@ -43,30 +46,32 @@ class ThreadView extends StatelessWidget {
             height: 52,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF8FAFC),
+              color: activeTheme.surfaceHeaderBg(isDark),
               border: Border(
                 bottom: BorderSide(
-                  color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                  color: activeTheme.borderColor(isDark),
                   width: 1,
                 ),
               ),
             ),
             child: Row(
               children: [
-                const Icon(Icons.forum_outlined, size: 20, color: Color(0xFF38BDF8)),
+                Icon(Icons.forum_outlined, size: 20, color: activeTheme.accentColor(isDark)),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Thread',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       Text(
                         'Started by ${rootSender?.displayName ?? "User"} • ${rootMessage.replyCount} replies',
-                        style: TextStyle(fontSize: 11, color: isDark ? Colors.white60 : Colors.black54),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: isDark ? Colors.white60 : Colors.black54,
+                        ),
                       ),
                     ],
                   ),
@@ -90,10 +95,10 @@ class ThreadView extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                      color: activeTheme.surfaceHeaderBg(isDark),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                        color: activeTheme.borderColor(isDark),
                         width: 1,
                       ),
                     ),
@@ -104,7 +109,7 @@ class ThreadView extends StatelessWidget {
                           children: [
                             CircleAvatar(
                               radius: 12,
-                              backgroundColor: const Color(0xFF2563EB),
+                              backgroundColor: activeTheme.accentColor(isDark),
                               child: Text(
                                 (rootSender?.displayName.isNotEmpty ?? false) ? rootSender!.displayName[0] : 'U',
                                 style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.bold),

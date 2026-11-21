@@ -6,16 +6,53 @@ class DarkBlueYellowTheme implements AppThemeDefinition {
   String get id => 'dark_blue_yellow';
 
   @override
-  String get name => 'Dark Blue + Yellow';
+  String get name => 'Dark Blue + Yellow (High Contrast)';
 
   static const Color darkBg = Color(0xFF0B132B);
+  static const Color darkListBg = Color(0xFF0E1A38);
   static const Color darkSurface = Color(0xFF14213D);
+  static const Color darkBubbleMy = Color(0xFF1D4ED8);
+  static const Color darkBubbleTheir = Color(0xFF1E2E4F);
   static const Color darkBorder = Color(0xFF263A63);
   static const Color bluePrimary = Color(0xFF2563EB);
   static const Color yellowAccent = Color(0xFFFACC15);
+
   static const Color lightBg = Color(0xFFF0F5FF);
+  static const Color lightListBg = Color(0xFFF4F8FF);
   static const Color lightSurface = Colors.white;
+  static const Color lightBubbleMy = Color(0xFF2563EB);
+  static const Color lightBubbleTheir = Color(0xFFFEF9C3);
   static const Color lightBorder = Color(0xFFBFDBFE);
+
+  @override
+  Color chatStageBg(bool isDark) => isDark ? darkBg : lightBg;
+
+  @override
+  Color chatListBg(bool isDark) => isDark ? darkListBg : lightListBg;
+
+  @override
+  Color surfaceHeaderBg(bool isDark) => isDark ? darkSurface : lightSurface;
+
+  @override
+  Color leftRailBg(bool isDark) => isDark ? darkSurface : const Color(0xFFE0EDFF);
+
+  @override
+  Color myBubbleBg(bool isDark) => isDark ? darkBubbleMy : lightBubbleMy;
+
+  @override
+  Color myBubbleTextColor(bool isDark) => Colors.white;
+
+  @override
+  Color theirBubbleBg(bool isDark) => isDark ? darkBubbleTheir : lightBubbleTheir;
+
+  @override
+  Color theirBubbleTextColor(bool isDark) => isDark ? const Color(0xFFF8FAFC) : const Color(0xFF422006);
+
+  @override
+  Color accentColor(bool isDark) => yellowAccent;
+
+  @override
+  Color borderColor(bool isDark) => isDark ? darkBorder : lightBorder;
 
   @override
   ThemeData get darkTheme {
@@ -26,6 +63,7 @@ class DarkBlueYellowTheme implements AppThemeDefinition {
       primaryColor: bluePrimary,
       colorScheme: const ColorScheme.dark(
         primary: bluePrimary,
+        primaryContainer: darkSurface,
         secondary: yellowAccent,
         surface: darkSurface,
         onSurface: Color(0xFFF8FAFC),
@@ -74,6 +112,7 @@ class DarkBlueYellowTheme implements AppThemeDefinition {
       primaryColor: bluePrimary,
       colorScheme: const ColorScheme.light(
         primary: bluePrimary,
+        primaryContainer: Color(0xFFDBEAFE),
         secondary: yellowAccent,
         surface: lightSurface,
         onSurface: Color(0xFF0B132B),
