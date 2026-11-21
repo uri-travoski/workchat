@@ -155,7 +155,7 @@ func (s *Server) registerRoutes() {
 }
 
 func (s *Server) handleHealth(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]interface{}{"status": "ok", "version": "1.2.1"})
+	writeJSON(w, http.StatusOK, map[string]interface{}{"status": "ok", "version": "1.2.2"})
 }
 
 func (s *Server) handleMeta(w http.ResponseWriter, r *http.Request) {
@@ -163,7 +163,7 @@ func (s *Server) handleMeta(w http.ResponseWriter, r *http.Request) {
 	s.database.QueryRow("SELECT COUNT(*) FROM users").Scan(&userCount)
 	writeJSON(w, http.StatusOK, map[string]interface{}{
 		"name":           s.cfg.Name,
-		"version":        "1.2.1",
+		"version":        "1.2.2",
 		"setup_required": userCount == 0,
 		"public_url":     s.cfg.PublicURL,
 	})
@@ -205,7 +205,7 @@ func (s *Server) handleSetup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokens, err := auth.CreateSession(s.database, id, "Web Setup", "1.2.1", r.RemoteAddr)
+	tokens, err := auth.CreateSession(s.database, id, "Web Setup", "1.2.2", r.RemoteAddr)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return

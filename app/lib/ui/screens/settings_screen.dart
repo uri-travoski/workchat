@@ -21,8 +21,8 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  static const String currentVersion = '1.2.1';
-  static const int buildNumber = 120;
+  static const String currentVersion = '1.2.2';
+  static const int buildNumber = 122;
 
   bool _isCheckingUpdate = false;
   String? _updateStatus;
@@ -38,7 +38,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     try {
       // Check GitHub releases API
       final res = await http.get(
-        Uri.parse('https://api.github.com/repos/owner/Workchat/releases/latest'),
+        Uri.parse('https://api.github.com/repos/uri-travoski/workchat/releases/latest'),
         headers: {'Accept': 'application/vnd.github.v3+json'},
       ).timeout(const Duration(seconds: 4));
 

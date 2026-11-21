@@ -46,7 +46,7 @@ func (a *AdminHandler) Overview(w http.ResponseWriter, r *http.Request) {
 		"messages_count":      msgCount,
 		"attachments_count":   attCount,
 		"storage_bytes":       attTotalSize,
-		"server_version":      "1.2.1",
+		"server_version":      "1.2.2",
 		"now_ms":              db.NowMs(),
 	}
 
