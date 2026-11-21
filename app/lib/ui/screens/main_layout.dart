@@ -960,24 +960,27 @@ class _MainLayoutState extends State<MainLayout> {
     final activeTheme = themeMgr.activeTheme;
     final isHidden = hiddenMgr.isHidden(activeConv.id);
 
-    return Container(
-      height: 56,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: activeTheme.surfaceHeaderBg(isDark),
-        border: Border(bottom: BorderSide(color: activeTheme.borderColor(isDark), width: 1)),
-      ),
-      child: Row(
-        children: [
-          // Mobile Back button
-          if (isMobile)
-            IconButton(
-              icon: const Icon(Icons.arrow_back),
-              tooltip: 'Back to conversations',
-              onPressed: () {
-                chatState.selectConversation(null);
-              },
-            ),
+    return SafeArea(
+      top: isMobile,
+      bottom: false,
+      child: Container(
+        height: 56,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          color: activeTheme.surfaceHeaderBg(isDark),
+          border: Border(bottom: BorderSide(color: activeTheme.borderColor(isDark), width: 1)),
+        ),
+        child: Row(
+          children: [
+            // Mobile Back button
+            if (isMobile)
+              IconButton(
+                icon: const Icon(Icons.arrow_back),
+                tooltip: 'Back to conversations',
+                onPressed: () {
+                  chatState.selectConversation(null);
+                },
+              ),
 
           Expanded(
             child: Column(
@@ -1109,8 +1112,9 @@ class _MainLayoutState extends State<MainLayout> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   // WhatsApp-style Search Bar inside Conversation
   Widget _buildConvSearchHeader(BuildContext context, List<Message> messages) {
@@ -1120,26 +1124,29 @@ class _MainLayoutState extends State<MainLayout> {
     final matchCount = _matchedIndices.length;
     final currentPos = matchCount > 0 ? _currentMatchPointer + 1 : 0;
 
-    return Container(
-      height: 56,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: activeTheme.surfaceHeaderBg(isDark),
-        border: Border(bottom: BorderSide(color: activeTheme.borderColor(isDark), width: 1)),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              setState(() {
-                _isSearchingConv = false;
-                _convSearchController.clear();
-                _matchedIndices = [];
-                _currentMatchPointer = 0;
-              });
-            },
-          ),
+    return SafeArea(
+      top: true,
+      bottom: false,
+      child: Container(
+        height: 56,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          color: activeTheme.surfaceHeaderBg(isDark),
+          border: Border(bottom: BorderSide(color: activeTheme.borderColor(isDark), width: 1)),
+        ),
+        child: Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                setState(() {
+                  _isSearchingConv = false;
+                  _convSearchController.clear();
+                  _matchedIndices = [];
+                  _currentMatchPointer = 0;
+                });
+              },
+            ),
           Expanded(
             child: TextField(
               controller: _convSearchController,
@@ -1167,8 +1174,9 @@ class _MainLayoutState extends State<MainLayout> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   void _handleOpenThread(BuildContext context, Message m, ChatState chatState, bool isMobile) {
     chatState.openThread(m);

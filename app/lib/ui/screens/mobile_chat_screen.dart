@@ -224,6 +224,7 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
     return AppBar(
       backgroundColor: activeTheme.surfaceHeaderBg(isDark),
       elevation: 1,
+      toolbarHeight: 60,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         tooltip: 'Back to conversations',
