@@ -21,8 +21,8 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  static const String currentVersion = '1.2.3';
-  static const int buildNumber = 123;
+  static const String currentVersion = '1.2.4';
+  static const int buildNumber = 124;
 
   bool _isCheckingUpdate = false;
   String? _updateStatus;
@@ -136,115 +136,199 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
           // Section: Appearance & Themes (2 New Themes)
           _sectionHeader(context, 'Appearance & Themes'),
-          ListTile(
-            leading: const Icon(Icons.palette_outlined),
-            title: const Text('Color Theme'),
-            subtitle: Text(themeMgr.activeTheme.name),
-            trailing: DropdownButton<String>(
-              value: themeMgr.activeThemeId,
-              underline: const SizedBox(),
-              items: themeMgr.availableThemes.map((t) {
-                return DropdownMenuItem<String>(
-                  value: t.id,
-                  child: Text(t.name),
-                );
-              }).toList(),
-              onChanged: (id) {
-                if (id != null) themeMgr.setActiveTheme(id);
-              },
+
+          // Theme Mode (Dark / Light / System) Segmented Toggle
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: SizedBox(
+              width: double.infinity,
+              child: SegmentedButton<ThemeMode>(
+                segments: const [
+                  ButtonSegment(
+                    value: ThemeMode.dark,
+                    icon: Icon(Icons.dark_mode_outlined, size: 18),
+                    label: Text('Dark'),
+                  ),
+                  ButtonSegment(
+                    value: ThemeMode.light,
+                    icon: Icon(Icons.light_mode_outlined, size: 18),
+                    label: Text('Light'),
+                  ),
+                  ButtonSegment(
+                    value: ThemeMode.system,
+                    icon: Icon(Icons.brightness_auto_outlined, size: 18),
+                    label: Text('System'),
+                  ),
+                ],
+                selected: {themeMgr.themeMode},
+                onSelectionChanged: (set) {
+                  if (set.isNotEmpty) themeMgr.setThemeMode(set.first);
+                },
+              ),
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.brightness_medium_outlined),
-            title: const Text('Theme Mode'),
-            subtitle: Text(themeMgr.themeMode.name.toUpperCase()),
-            trailing: DropdownButton<ThemeMode>(
-              value: themeMgr.themeMode,
-              underline: const SizedBox(),
-              items: const [
-                DropdownMenuItem(value: ThemeMode.dark, child: Text('Dark Mode')),
-                DropdownMenuItem(value: ThemeMode.light, child: Text('Light Mode')),
-                DropdownMenuItem(value: ThemeMode.system, child: Text('System')),
-              ],
-              onChanged: (mode) {
-                if (mode != null) themeMgr.setThemeMode(mode);
-              },
-            ),
-          ),
+          const SizedBox(height: 8),
+
+          // Visual Theme Cards
+          _buildThemeSelectorCards(context, themeMgr),
 
           // Section: Typography & Fonts
           _sectionHeader(context, 'Typography & Fonts'),
-          ListTile(
-            leading: const Icon(Icons.font_download_outlined),
-            title: const Text('Font Family'),
-            subtitle: Text(themeMgr.fontFamily),
-            trailing: DropdownButton<String>(
-              value: themeMgr.fontFamily,
-              underline: const SizedBox(),
-              items: ThemeManager.availableFonts.map((f) {
-                return DropdownMenuItem<String>(
-                  value: f,
-                  child: Text(f),
-                );
-              }).toList(),
-              onChanged: (family) {
-                if (family != null) themeMgr.setFontFamily(family);
-              },
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.format_size_rounded),
-            title: const Text('Font Size'),
-            subtitle: Text('${14 + themeMgr.fontSizeDelta} pt (${themeMgr.fontSizeDelta >= 0 ? "+${themeMgr.fontSizeDelta}" : "${themeMgr.fontSizeDelta}"})'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.remove_circle_outline),
-                  tooltip: 'Decrease font size by 1 pt',
-                  onPressed: themeMgr.fontSizeDelta > -3 ? () => themeMgr.adjustFontSize(-1) : null,
-                ),
-                Text(
-                  '${14 + themeMgr.fontSizeDelta}',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add_circle_outline),
-                  tooltip: 'Increase font size by 1 pt',
-                  onPressed: themeMgr.fontSizeDelta < 8 ? () => themeMgr.adjustFontSize(1) : null,
-                ),
-              ],
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.format_bold_rounded),
-            title: const Text('Font Weight'),
-            subtitle: Text(themeMgr.fontWeightMode.toUpperCase()),
-            trailing: DropdownButton<String>(
-              value: themeMgr.fontWeightMode,
-              underline: const SizedBox(),
-              items: const [
-                DropdownMenuItem(value: 'regular', child: Text('Regular')),
-                DropdownMenuItem(value: 'semi-bold', child: Text('Semi-Bold')),
-                DropdownMenuItem(value: 'bold', child: Text('Bold')),
-              ],
-              onChanged: (mode) {
-                if (mode != null) themeMgr.setFontWeightMode(mode);
-              },
-            ),
-          ),
+
+          // Font Family Selector Chips
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Font Family',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: ThemeManager.availableFonts.map((f) {
+                    final isSelected = themeMgr.fontFamily == f;
+                    return ChoiceChip(
+                      label: Text(
+                        f,
+                        style: TextStyle(
+                          fontFamily: f,
+                          fontSize: 14,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                      selected: isSelected,
+                      onSelected: (val) {
+                        if (val) themeMgr.setFontFamily(f);
+                      },
+                    );
+                  }).toList(),
+                ),
+              ],
+            ),
+          ),
+
+          // Font Size Stepper Row
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: theme.cardColor,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: theme.dividerColor.withOpacity(0.5)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.format_size_rounded, size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Font Size',
+                          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                        ),
+                        Text(
+                          '${14 + themeMgr.fontSizeDelta} pt (${themeMgr.fontSizeDelta >= 0 ? "+${themeMgr.fontSizeDelta}" : "${themeMgr.fontSizeDelta}"} pt)',
+                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.remove_circle_outline),
+                    tooltip: 'Decrease font size (-1 pt)',
+                    onPressed: themeMgr.fontSizeDelta > -3 ? () => themeMgr.adjustFontSize(-1) : null,
+                  ),
+                  Container(
+                    constraints: const BoxConstraints(minWidth: 32),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '${14 + themeMgr.fontSizeDelta}',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.add_circle_outline),
+                    tooltip: 'Increase font size (+1 pt)',
+                    onPressed: themeMgr.fontSizeDelta < 8 ? () => themeMgr.adjustFontSize(1) : null,
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Font Weight Mode
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Font Weight',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: SegmentedButton<String>(
+                    segments: const [
+                      ButtonSegment(value: 'regular', label: Text('Regular')),
+                      ButtonSegment(value: 'semi-bold', label: Text('Semi-Bold')),
+                      ButtonSegment(value: 'bold', label: Text('Bold')),
+                    ],
+                    selected: {themeMgr.fontWeightMode},
+                    onSelectionChanged: (set) {
+                      if (set.isNotEmpty) themeMgr.setFontWeightMode(set.first);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Live Typography & Theme Preview Box
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Container(
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: theme.dividerColor),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: theme.dividerColor.withOpacity(0.6)),
               ),
-              child: const Text(
-                'Live Preview: The quick brown fox jumps over the lazy dog. 🚀 1234567890',
-                style: TextStyle(fontSize: 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.remove_red_eye_outlined, size: 16, color: theme.colorScheme.primary),
+                      const SizedBox(width: 6),
+                      Text(
+                        'LIVE PREVIEW (${themeMgr.fontFamily}, ${14 + themeMgr.fontSizeDelta} pt, ${themeMgr.fontWeightMode})',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'WorkChat enables instant, private communication across channels and threads. 🚀⚡',
+                    style: TextStyle(
+                      fontFamily: themeMgr.fontFamily,
+                      fontSize: (14.0 + themeMgr.fontSizeDelta).clamp(9.0, 36.0),
+                      fontWeight: themeMgr.effectiveBodyWeight,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -427,6 +511,95 @@ class _SettingsScreenState extends State<SettingsScreen> {
           color: theme.colorScheme.secondary,
           letterSpacing: 0.8,
         ),
+      ),
+    );
+  }
+
+  Widget _buildThemeSelectorCards(BuildContext context, ThemeManager themeMgr) {
+    final theme = Theme.of(context);
+
+    final themeOptions = [
+      {
+        'id': 'slate_steel',
+        'name': 'Slate Steel',
+        'subtitle': 'Original slate & steel-blue brand theme',
+        'primary': const Color(0xFF1E293B),
+        'accent': const Color(0xFF38BDF8),
+      },
+      {
+        'id': 'purple_orange',
+        'name': 'Purple + Sunset Orange',
+        'subtitle': 'Deep purple with vivid orange accents',
+        'primary': const Color(0xFF581C87),
+        'accent': const Color(0xFFF97316),
+      },
+      {
+        'id': 'dark_blue_yellow',
+        'name': 'Dark Blue + Yellow',
+        'subtitle': 'High-contrast midnight blue & gold',
+        'primary': const Color(0xFF1E3A8A),
+        'accent': const Color(0xFFEAB308),
+      },
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Column(
+        children: themeOptions.map((t) {
+          final isSelected = themeMgr.activeThemeId == t['id'];
+          final primary = t['primary'] as Color;
+          final accent = t['accent'] as Color;
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            decoration: BoxDecoration(
+              color: isSelected ? accent.withOpacity(0.08) : theme.cardColor,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isSelected ? accent : theme.dividerColor.withOpacity(0.4),
+                width: isSelected ? 2 : 1,
+              ),
+            ),
+            child: ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              onTap: () => themeMgr.setActiveTheme(t['id'] as String),
+              leading: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: primary,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+                ),
+                child: Center(
+                  child: Container(
+                    width: 14,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: accent,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ),
+              title: Text(
+                t['name'] as String,
+                style: TextStyle(
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                  fontSize: 14,
+                  color: isSelected ? accent : null,
+                ),
+              ),
+              subtitle: Text(
+                t['subtitle'] as String,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+              trailing: isSelected
+                  ? Icon(Icons.check_circle_rounded, color: accent, size: 22)
+                  : Icon(Icons.circle_outlined, color: Colors.grey.withOpacity(0.5), size: 22),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
