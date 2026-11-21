@@ -15,6 +15,7 @@ apk_server/
 
 # Go
 server/workchat-server
+server/bin/
 server/data/
 server/*.db
 server/*.db-wal
